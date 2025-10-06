@@ -12,7 +12,8 @@ class Event extends Model
         'description',
         'date',
         'location',
-        'price'
+        'price',
+        'category'
     ];
 
     // Relacija: jedan događaj može imati više tiketa/porudžbina
