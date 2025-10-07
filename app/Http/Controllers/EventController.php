@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
 {
@@ -11,36 +13,30 @@ class EventController extends Controller
     {
         $query = Event::query();
 
-        // Filtriranje po lokaciji
         if ($request->has('location')) {
             $query->where('location', 'like', '%' . $request->location . '%');
         }
 
-        // Filtriranje po minimalnoj ceni
         if ($request->has('price_min')) {
             $query->where('price', '>=', $request->price_min);
         }
 
-        // Filtriranje po maksimalnoj ceni
         if ($request->has('price_max')) {
             $query->where('price', '<=', $request->price_max);
         }
 
-        // Pretraga po nazivu
         if ($request->has('search')) {
            $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        // Sortiranje (npr. /events?sort=date ili ?sort=price)
         if ($request->has('sort')) {
             $sortField = $request->sort;
-            $sortOrder = $request->get('order', 'asc'); // default asc
+            $sortOrder = $request->get('order', 'asc');
             if (in_array($sortField, ['name', 'date', 'price'])) {
                 $query->orderBy($sortField, $sortOrder);
             }
         }
 
-        // Paginacija (default 10 po strani, ili ?per_page=5)
         $perPage = $request->get('per_page', 10);
         $events = $query->paginate($perPage);
 
@@ -50,7 +46,6 @@ class EventController extends Controller
     // Kreiranje novog događaja (samo admin)
     public function store(Request $request)
     {
-
         if (!auth()->user() || !auth()->user()->isAdmin()) {
             return response()->json(['message' => 'Niste ovlašćeni!'], 403);
         }
@@ -62,9 +57,20 @@ class EventController extends Controller
                 'location' => 'required|string',
                 'price' => 'required|numeric',
                 'description' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
-            $event = Event::create($request->all());
+            $data = $request->all();
+
+            // Upload fajla ako postoji
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $filename = Str::slug($request->name) . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('events', $filename, 'public');
+                $data['image'] = $path;
+            }
+
+            $event = Event::create($data);
 
             return response()->json($event, 201);
 
@@ -96,7 +102,32 @@ class EventController extends Controller
             return response()->json(['message' => 'Event not found'], 404);
         }
 
-        $event->update($request->all());
+        $request->validate([
+            'name' => 'sometimes|required|string',
+            'date' => 'sometimes|required|date',
+            'location' => 'sometimes|required|string',
+            'price' => 'sometimes|required|numeric',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $data = $request->all();
+
+        // Upload fajla ako postoji
+        if ($request->hasFile('image')) {
+            // Brisanje stare slike ako postoji
+            if ($event->image && Storage::disk('public')->exists($event->image)) {
+                Storage::disk('public')->delete($event->image);
+            }
+
+            $file = $request->file('image');
+            $filename = Str::slug($request->name ?? $event->name) . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('events', $filename, 'public');
+            $data['image'] = $path;
+        }
+
+        $event->update($data);
+
         return response()->json($event, 200);
     }
 
@@ -109,6 +140,11 @@ class EventController extends Controller
         $event = Event::find($id);
         if (!$event) {
             return response()->json(['message' => 'Event not found'], 404);
+        }
+
+        // Brisanje slike iz storage-a ako postoji
+        if ($event->image && Storage::disk('public')->exists($event->image)) {
+            Storage::disk('public')->delete($event->image);
         }
 
         $event->delete();

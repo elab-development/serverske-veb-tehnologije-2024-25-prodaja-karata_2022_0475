@@ -13,12 +13,18 @@ class Event extends Model
         'date',
         'location',
         'price',
-        'category'
+        'category',
+        'image'
     ];
 
-    // Relacija: jedan događaj može imati više tiketa/porudžbina
     public function tickets()
     {
         return $this->hasMany(Ticket::class);
+    }
+
+    // Helper funkcija: vraća punu URL putanju do slike
+    public function getImageUrlAttribute()
+    {
+        return $this->image ? url('storage/' . $this->image) : null;
     }
 }
