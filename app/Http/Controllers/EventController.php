@@ -7,23 +7,27 @@ use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
-    // Dohvatanje svih događaja
     public function index()
     {
         $events = Event::all();
         return response()->json($events, 200);
     }
 
-    // Kreiranje novog događaja
+    // Kreiranje novog događaja (samo admin)
     public function store(Request $request)
     {
-       try {
-           $request->validate([
-               'name' => 'required|string',
-               'date' => 'required|date',
-               'location' => 'required|string',
-               'price' => 'required|numeric',
-               'description' => 'nullable|string',
+
+        if (!auth()->user() || !auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'Niste ovlašćeni!'], 403);
+        }
+
+        try {
+            $request->validate([
+                'name' => 'required|string',
+                'date' => 'required|date',
+                'location' => 'required|string',
+                'price' => 'required|numeric',
+                'description' => 'nullable|string',
             ]);
 
             $event = Event::create($request->all());
@@ -38,9 +42,6 @@ class EventController extends Controller
         }
     }
 
-
-
-    // Dohvatanje jednog događaja
     public function show($id)
     {
         $event = Event::find($id);
@@ -50,9 +51,12 @@ class EventController extends Controller
         return response()->json($event, 200);
     }
 
-    // Ažuriranje događaja
     public function update(Request $request, $id)
     {
+        if (!auth()->user() || !auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'Niste ovlašćeni!'], 403);
+        }
+
         $event = Event::find($id);
         if (!$event) {
             return response()->json(['message' => 'Event not found'], 404);
@@ -62,9 +66,12 @@ class EventController extends Controller
         return response()->json($event, 200);
     }
 
-    // Brisanje događaja
     public function destroy($id)
     {
+        if (!auth()->user() || !auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'Niste ovlašćeni!'], 403);
+        }
+
         $event = Event::find($id);
         if (!$event) {
             return response()->json(['message' => 'Event not found'], 404);
