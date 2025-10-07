@@ -7,9 +7,43 @@ use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $events = Event::all();
+        $query = Event::query();
+
+        // Filtriranje po lokaciji
+        if ($request->has('location')) {
+            $query->where('location', 'like', '%' . $request->location . '%');
+        }
+
+        // Filtriranje po minimalnoj ceni
+        if ($request->has('price_min')) {
+            $query->where('price', '>=', $request->price_min);
+        }
+
+        // Filtriranje po maksimalnoj ceni
+        if ($request->has('price_max')) {
+            $query->where('price', '<=', $request->price_max);
+        }
+
+        // Pretraga po nazivu
+        if ($request->has('search')) {
+           $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        // Sortiranje (npr. /events?sort=date ili ?sort=price)
+        if ($request->has('sort')) {
+            $sortField = $request->sort;
+            $sortOrder = $request->get('order', 'asc'); // default asc
+            if (in_array($sortField, ['name', 'date', 'price'])) {
+                $query->orderBy($sortField, $sortOrder);
+            }
+        }
+
+        // Paginacija (default 10 po strani, ili ?per_page=5)
+        $perPage = $request->get('per_page', 10);
+        $events = $query->paginate($perPage);
+
         return response()->json($events, 200);
     }
 
