@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\AuthController;
@@ -69,3 +70,11 @@ Route::delete('/test-delete/{id}', function ($id) {
         'message' => "Resurs sa ID {$id} je obrisan"
     ]);
 });
+
+Route::get('/sports-data', function () {
+    $response = Http::get('https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4387');
+    
+    return $response->json();
+});
+
+
