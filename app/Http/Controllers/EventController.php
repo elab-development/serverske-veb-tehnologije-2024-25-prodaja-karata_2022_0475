@@ -58,6 +58,7 @@ class EventController extends Controller
                 'price' => 'required|numeric',
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'category' => 'nullable|string',
             ]);
 
             $data = $request->all();
@@ -109,6 +110,7 @@ class EventController extends Controller
             'price' => 'sometimes|required|numeric',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'category' => 'nullable|string',
         ]);
 
         $data = $request->all();
