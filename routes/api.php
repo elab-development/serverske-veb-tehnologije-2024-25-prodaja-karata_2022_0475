@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\AuthController;
+use App\Models\Order;
 
 // =====================
 // Auth rute
@@ -76,5 +77,27 @@ Route::get('/sports-data', function () {
     
     return $response->json();
 });
+
+Route::get('/orders', function() {
+    try {
+        $orders = Order::all();
+
+        $result = $orders->map(function($order) {
+            return [
+                'user_name' => optional($order->user)->name ?? 'Nepoznato',
+                'event_name' => optional(optional($order->ticket)->event)->name ?? 'Nepoznato'
+            ];
+        });
+
+        return response()->json($result, 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Došlo je do greške prilikom učitavanja narudžbina',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
 
 

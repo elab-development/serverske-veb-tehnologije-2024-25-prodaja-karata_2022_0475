@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Ticket extends Model
+class Order extends Model
 {
     protected $fillable = [
         'user_id',
-        'event_id',
+        'ticket_id',
         'quantity',
         'total_price'
     ];
@@ -18,13 +18,14 @@ class Ticket extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function event()
+    public function ticket()
     {
-        return $this->belongsTo(Event::class);
+        return $this->belongsTo(Ticket::class);
     }
 
-    public function orders()
+    public function event()
     {
-        return $this->hasMany(Order::class);
+        return optional($this->ticket)->event;
     }
+
 }
