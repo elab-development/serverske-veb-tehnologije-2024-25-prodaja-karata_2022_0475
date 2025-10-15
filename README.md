@@ -12,7 +12,7 @@ Ovaj projekat predstavlja **RESTful API za prodaju karata** za sportske događaj
 - **Frontend:** Nema (API-only)
 - **PHP verzija:** 8.1 ili novija
 
-## 🚀 Postavljanje projekta lokalno
+## 🚀 Pokretanje projekta lokalno
 
 ### 1. Kloniranje repozitorijuma
 
