@@ -78,6 +78,11 @@ Route::get('/sports-data', function () {
     return $response->json();
 });
 
+Route::get('/advice', function () {
+    $response = Http::get('https://api.adviceslip.com/advice');
+    return $response->json();
+});
+
 Route::get('/orders', function() {
     try {
         $orders = Order::all();
